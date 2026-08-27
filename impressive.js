@@ -18,10 +18,113 @@
 
   const init = () => {
     const root = document.querySelector(".impressive");
+    if (!root) return;
+
     const items = [...root.querySelectorAll(".step, .overview")];
+    if (!items.length) return;
+
     const steps = items.filter(x => x.classList.contains("step"));
     const val = (s, k, d = 0) => Number(s.dataset[k] ?? d);
+    const pose = s => {
+      const scale = val(s, "scale", 1);
+      return {
+        x: `${val(s, "x")}px`,
+        y: `${val(s, "y")}px`,
+        z: `${val(s, "z")}px`,
+        rx: `${val(s, "rotateX")}deg`,
+        ry: `${val(s, "rotateY")}deg`,
+        rz: `${val(s, "rotateZ", val(s, "rotate"))}deg`,
+        s: scale
+      };
+    };
+    const setVars = (element, prefix, values) =>
+      Object.entries(values).forEach(([key, value]) =>
+        element.style.setProperty(`${prefix}${key}`, value));
+    const interactive = target => target instanceof Element && target.closest(
+      "button, a, input, textarea, select, [contenteditable]"
+    );
+    const keyDirection = {
+      ArrowRight: 1, PageDown: 1, " ": 1,
+      ArrowLeft: -1, PageUp: -1
+    };
     let current = items[0];
+
+    const annotationControls = root.querySelector(".impressive-annotations");
+    const toolButtons = annotationControls
+      ? [...annotationControls.querySelectorAll("[aria-pressed]")]
+      : [];
+    const clearButton = annotationControls?.querySelector(
+      '[data-annotation="clear"]'
+    );
+    const canvases = new Map();
+    let annotationTool = "off";
+    let stroke = null;
+    let swipe = null;
+
+    const activeStep = () =>
+      current.classList.contains("step") ? current : null;
+
+    const setAnnotationTool = tool => {
+      annotationTool = tool;
+      root.dataset.annotationTool = tool;
+      for (const button of toolButtons) {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.annotation === tool)
+        );
+      }
+    };
+
+    if (annotationControls) {
+      for (const step of steps) {
+        const canvas = document.createElement("canvas");
+        canvas.className = "impressive-annotation";
+        canvas.width = step.clientWidth;
+        canvas.height = step.clientHeight;
+        canvas.setAttribute("aria-hidden", "true");
+        step.append(canvas);
+        canvases.set(step, canvas);
+      }
+    }
+
+    const point = (canvas, event) => {
+      const box = canvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - box.left) * canvas.width / box.width,
+        y: (event.clientY - box.top) * canvas.height / box.height
+      };
+    };
+
+    const startStroke = (canvas, event) => {
+      const context = canvas.getContext("2d");
+      const style = getComputedStyle(root);
+      context.globalCompositeOperation =
+        annotationTool === "eraser" ? "destination-out" : "source-over";
+      context.strokeStyle = style.getPropertyValue("--impressive-ink").trim();
+      context.lineWidth = Number(style.getPropertyValue(
+        `--impressive-${annotationTool === "eraser" ? "eraser" : "pen"}-width`
+      ));
+      context.lineCap = "round";
+      context.lineJoin = "round";
+
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      stroke = { id: event.pointerId, canvas, context };
+      const p = point(canvas, event);
+      context.beginPath();
+      context.moveTo(p.x, p.y);
+      context.lineTo(p.x + .01, p.y + .01);
+      context.stroke();
+    };
+
+    const stopStroke = event => {
+      if (stroke?.id !== event.pointerId) return false;
+      stroke.context.closePath();
+      stroke = null;
+      return true;
+    };
+
+    setAnnotationTool("off");
 
     /*
      * Firefox 154 compatibility bridge.
@@ -40,16 +143,7 @@
     const syncCompat = () => {
       if (!typedAttr) {
         for (const s of steps) {
-          s.style.setProperty("--x", `${val(s, "x")}px`);
-          s.style.setProperty("--y", `${val(s, "y")}px`);
-          s.style.setProperty("--z", `${val(s, "z")}px`);
-          s.style.setProperty("--rx", `${val(s, "rotateX")}deg`);
-          s.style.setProperty("--ry", `${val(s, "rotateY")}deg`);
-          s.style.setProperty(
-            "--rz",
-            `${val(s, "rotateZ", val(s, "rotate"))}deg`
-          );
-          s.style.setProperty("--s", val(s, "scale", 1));
+          setVars(s, "--", pose(s));
         }
       }
 
@@ -61,23 +155,15 @@
       }
     };
 
-    const vars = o =>
-      Object.entries(o).forEach(([k, v]) =>
-        root.style.setProperty(`--camera-${k}`, v));
+    const vars = values => setVars(root, "--camera-", values);
 
     // Focused slides are always shown front-on:
     // copy their world rotation to the camera state, and CSS applies its inverse.
     const camera = s => {
-      const scale = val(s, "scale", 1);
+      const values = pose(s);
       vars({
-        x: `${val(s, "x")}px`,
-        y: `${val(s, "y")}px`,
-        z: `${val(s, "z")}px`,
-        rx: `${val(s, "rotateX")}deg`,
-        ry: `${val(s, "rotateY")}deg`,
-        rz: `${val(s, "rotateZ", val(s, "rotate"))}deg`,
-        s: scale,
-        ...(!typedMath && { "inv-s": 1 / scale })
+        ...values,
+        ...(!typedMath && { "inv-s": 1 / values.s })
       });
     };
 
@@ -136,8 +222,13 @@
     };
 
     const show = item => {
+      current.classList.remove("active");
       current = item;
+      current.classList.add("active");
       item.classList.contains("overview") ? overview(item) : camera(item);
+      const step = activeStep();
+      if (clearButton) clearButton.disabled = !step;
+      if (!step) setAnnotationTool("off");
       if (item.id) history.replaceState(null, "", `#${item.id}`);
     };
 
@@ -146,17 +237,80 @@
       show(items[i]);
     };
 
+    root.addEventListener("pointerdown", e => {
+      const canvas = e.target instanceof Element &&
+        e.target.closest(".impressive-annotation");
+      if (canvas && !stroke && e.isPrimary &&
+          annotationTool !== "off" && e.button === 0) {
+        startStroke(canvas, e);
+        return;
+      }
+
+      if (swipe || !e.isPrimary || e.pointerType !== "touch" ||
+          annotationTool !== "off" ||
+          interactive(e.target)) return;
+
+      swipe = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    });
+
+    root.addEventListener("pointermove", e => {
+      if (!stroke || e.pointerId !== stroke.id) return;
+      const p = point(stroke.canvas, e);
+      stroke.context.lineTo(p.x, p.y);
+      stroke.context.stroke();
+    });
+
+    root.addEventListener("pointerup", e => {
+      if (stopStroke(e)) return;
+      if (!swipe || e.pointerId !== swipe.id) return;
+
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      swipe = null;
+
+      if (Math.abs(dx) >= 60 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+        move(dx < 0 ? 1 : -1);
+        e.preventDefault();
+      }
+    });
+
+    root.addEventListener("pointercancel", e => {
+      stopStroke(e);
+      if (swipe?.id === e.pointerId) swipe = null;
+    });
+
     root.addEventListener("click", e => {
       if (e.target.closest("[data-prev]")) move(-1);
       if (e.target.closest("[data-next]")) move(1);
+
+      const annotation = e.target.closest("[data-annotation]");
+      if (!annotation) return;
+
+      const action = annotation.dataset.annotation;
+      if (action === "clear") {
+        const canvas = canvases.get(activeStep());
+        canvas?.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        setAnnotationTool(action);
+      }
     });
 
     window.addEventListener("keydown", e => {
-      if (["ArrowRight", "PageDown", " "].includes(e.key)) move(1);
-      else if (["ArrowLeft", "PageUp"].includes(e.key)) move(-1);
-      else if (e.key === "Home") show(items[0]);
-      else if (e.key === "End") show(items.at(-1));
-      else return;
+      if (e.key === "Escape" && annotationTool !== "off") {
+        setAnnotationTool("off");
+        e.preventDefault();
+        return;
+      }
+      const control = interactive(e.target);
+      if (control &&
+          (e.key === " " || control.matches(
+            "input, textarea, select, [contenteditable]"
+          ))) {
+        return;
+      }
+      const direction = keyDirection[e.key];
+      if (!direction) return;
+      move(direction);
       e.preventDefault();
     });
 

@@ -234,6 +234,12 @@ the directory containing this exporter."
         "  <button type=\"button\" data-prev aria-label=\"Previous slide\">←</button>\n"
         "  <button type=\"button\" data-next aria-label=\"Next slide\">→</button>\n"
         "</nav>\n"))
+     "<div class=\"impressive-annotations\" role=\"toolbar\" aria-label=\"Slide annotations\">\n"
+     "  <button type=\"button\" data-annotation=\"off\" aria-pressed=\"true\">Pointer</button>\n"
+     "  <button type=\"button\" data-annotation=\"pen\" aria-pressed=\"false\">Pen</button>\n"
+     "  <button type=\"button\" data-annotation=\"eraser\" aria-pressed=\"false\">Eraser</button>\n"
+     "  <button type=\"button\" data-annotation=\"clear\">Clear</button>\n"
+     "</div>\n"
      "</div>\n</body>\n</html>\n")))
 
 ;;;###autoload

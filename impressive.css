@@ -14,7 +14,7 @@
  *
  * impressive.css
  * CSS owns layout, transforms, transitions, and rendering.
- * JavaScript only bridges the active slide's data-* attributes to --camera-*.
+ * JavaScript supplies camera state, navigation, and slide annotations.
  */
 
 :root {
@@ -27,6 +27,10 @@
 
   --impressive-duration: 800ms;
   --impressive-ease: cubic-bezier(.2, .75, .2, 1);
+
+  --impressive-ink: CanvasText;
+  --impressive-pen-width: 4;
+  --impressive-eraser-width: 32;
 }
 
 @supports (scale: calc(100vw / 1px)) {
@@ -68,6 +72,7 @@ body {
   height: 100%;
   perspective: 1600px;
   transform-style: preserve-3d;
+  touch-action: pan-y;
 }
 
 /*
@@ -163,6 +168,40 @@ body {
 
 .step pre {
   overflow: auto;
+}
+
+.impressive-annotation {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.impressive[data-annotation-tool="pen"] .step.active .impressive-annotation,
+.impressive[data-annotation-tool="eraser"] .step.active .impressive-annotation {
+  pointer-events: auto;
+}
+
+.impressive[data-annotation-tool="pen"] .impressive-annotation {
+  cursor: crosshair;
+}
+
+.impressive[data-annotation-tool="eraser"] .impressive-annotation {
+  cursor: cell;
+}
+
+.impressive-annotations {
+  position: fixed;
+  z-index: 30;
+  right: 18px;
+  bottom: 18px;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .impressive-controls {

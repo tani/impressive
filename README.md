@@ -41,6 +41,13 @@ Load the core files and optional theme from jsDelivr:
       <button type="button" data-prev aria-label="Previous slide">←</button>
       <button type="button" data-next aria-label="Next slide">→</button>
     </nav>
+
+    <div class="impressive-annotations" role="toolbar" aria-label="Slide annotations">
+      <button type="button" data-annotation="off" aria-pressed="true">Pointer</button>
+      <button type="button" data-annotation="pen" aria-pressed="false">Pen</button>
+      <button type="button" data-annotation="eraser" aria-pressed="false">Eraser</button>
+      <button type="button" data-annotation="clear">Clear</button>
+    </div>
   </div>
 </body>
 </html>
@@ -130,14 +137,36 @@ Slides are visited in DOM order.
 
 ### Navigation
 
-The built-in keyboard controls are:
+The built-in navigation controls are:
 
-- Next: Right Arrow, Page Down, or Space
-- Previous: Left Arrow or Page Up
-- First slide: Home
-- Last item: End
+- Next: Right Arrow, Page Down, Space, or swipe left
+- Previous: Left Arrow, Page Up, or swipe right
 
 Buttons inside `.impressive` with `data-prev` or `data-next` receive the same previous and next behavior. Navigation updates the URL hash without adding a browser-history entry.
+
+Touch swipes are recognized in Pointer mode. Pen and Eraser modes reserve
+touch input for annotation instead of navigation.
+
+### Slide annotations
+
+Add an `.impressive-annotations` toolbar as shown in the quick-start template.
+Choose **Pen** to draw on the current slide, **Eraser** to remove parts of its
+drawing, and **Clear** to erase that slide's complete annotation. Choose
+**Pointer**, or press Escape, to return the mouse to normal slide content.
+
+Each slide owns a separate canvas, so its annotation remains in place while
+navigating around the presentation. Annotations last for the current page
+session and are not written back to the HTML document.
+
+The ink color and tool sizes can be changed without modifying the script:
+
+```css
+:root {
+  --impressive-ink: #c62828;
+  --impressive-pen-width: 4;
+  --impressive-eraser-width: 32;
+}
+```
 
 ### Overview markers
 
@@ -232,9 +261,9 @@ scratch to reproduce a similar presentation effect with modern browser
 features and as little JavaScript as practical. Its implementation favors
 native CSS capabilities—including custom properties, typed `attr()`, and 3D
 transforms—while JavaScript is kept to navigation, camera
-state, overview calculation, and compatibility bridging. Keeping the codebase
-small is a design goal: fewer moving parts make the behavior easier to
-understand and reduce the surface area for future bugs.
+state, overview calculation, slide annotations, and compatibility bridging.
+Keeping the codebase small is a design goal: fewer moving parts make the
+behavior easier to understand and reduce the surface area for future bugs.
 
 ### License
 

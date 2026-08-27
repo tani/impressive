@@ -18,6 +18,7 @@
 
 :root {
   color-scheme: light;
+  --impressive-ink: #963f36;
 }
 
 body {
@@ -83,7 +84,8 @@ body {
   text-underline-offset: .14em;
 }
 
-.impressive-controls button {
+.impressive-controls button,
+.impressive-annotations button {
   padding: .35rem .65rem;
   border: 0;
   color: #1f1f1d;
@@ -94,6 +96,14 @@ body {
 }
 
 .impressive-controls button:hover,
-.impressive-controls button:focus-visible {
+.impressive-controls button:focus-visible,
+.impressive-annotations button:hover,
+.impressive-annotations button:focus-visible,
+.impressive-annotations button[aria-pressed="true"] {
   background: #e7e6e1;
+}
+
+.impressive-annotations button:disabled {
+  opacity: .4;
+  cursor: default;
 }
