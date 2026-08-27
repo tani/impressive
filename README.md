@@ -216,7 +216,7 @@ You can also add deck-specific typography and component styles with ordinary sel
 
 ### Browser support
 
-The presentation targets modern browsers with CSS 3D transforms and `:has()` support. `impressive.js` supplies compatibility values when typed CSS `attr()` or viewport arithmetic is unavailable. Reduced-motion preferences disable slide and camera transitions.
+The presentation targets modern browsers with CSS 3D transform support. `impressive.js` supplies compatibility values when typed CSS `attr()` or viewport arithmetic is unavailable. Reduced-motion preferences disable slide and camera transitions.
 
 ## Project
 
@@ -230,8 +230,8 @@ CSS 3D transforms could turn an HTML document into a spatial presentation.
 `impressive.js` is not a fork or port of impress.js. It was rewritten from
 scratch to reproduce a similar presentation effect with modern browser
 features and as little JavaScript as practical. Its implementation favors
-native CSS capabilities—including custom properties, typed `attr()`,
-`:has()`, and 3D transforms—while JavaScript is kept to navigation, camera
+native CSS capabilities—including custom properties, typed `attr()`, and 3D
+transforms—while JavaScript is kept to navigation, camera
 state, overview calculation, and compatibility bridging. Keeping the codebase
 small is a design goal: fewer moving parts make the behavior easier to
 understand and reduce the surface area for future bugs.

@@ -37,7 +37,6 @@ body {
 
 .step {
   padding: 5.5rem 6.5rem;
-  color: #1f1f1d;
   background: rgb(242 241 237 / 88%);
 }
 
@@ -75,9 +74,6 @@ body {
 
 .step pre {
   margin: 1.5rem 0;
-  overflow: auto;
-  color: #1f1f1d;
-  background: transparent;
   font: 1.3rem/1.5 ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
