@@ -16,67 +16,164 @@
 (() => {
   "use strict";
 
-  const init = () => {
-    const root = document.querySelector(".impressive");
-    if (!root) return;
+  const closest = (target, selector) =>
+    target instanceof Element ? target.closest(selector) : null;
 
-    const items = [...root.querySelectorAll(".step, .overview")];
-    if (!items.length) return;
+  const interactive = target => Boolean(closest(
+    target,
+    "button, a, input, textarea, select, [contenteditable]"
+  ));
 
-    const steps = items.filter(x => x.classList.contains("step"));
-    const val = (s, k, d = 0) => Number(s.dataset[k] ?? d);
-    const pose = s => {
-      const scale = val(s, "scale", 1);
+  const createCamera = (root, items, steps) => {
+    const val = (slide, key, fallback = 0) =>
+      Number(slide.dataset[key] ?? fallback);
+    const pose = slide => {
+      const scale = val(slide, "scale", 1);
       return {
-        x: `${val(s, "x")}px`,
-        y: `${val(s, "y")}px`,
-        z: `${val(s, "z")}px`,
-        rx: `${val(s, "rotateX")}deg`,
-        ry: `${val(s, "rotateY")}deg`,
-        rz: `${val(s, "rotateZ", val(s, "rotate"))}deg`,
+        x: `${val(slide, "x")}px`,
+        y: `${val(slide, "y")}px`,
+        z: `${val(slide, "z")}px`,
+        rx: `${val(slide, "rotateX")}deg`,
+        ry: `${val(slide, "rotateY")}deg`,
+        rz: `${val(slide, "rotateZ", val(slide, "rotate"))}deg`,
         s: scale
       };
     };
     const setVars = (element, prefix, values) =>
       Object.entries(values).forEach(([key, value]) =>
         element.style.setProperty(`${prefix}${key}`, value));
-    const interactive = target => target instanceof Element && target.closest(
-      "button, a, input, textarea, select, [contenteditable]"
-    );
-    const keyDirection = {
-      ArrowRight: 1, PageDown: 1, " ": 1,
-      ArrowLeft: -1, PageUp: -1
-    };
-    let current = items[0];
 
-    const annotationControls = root.querySelector(".impressive-annotations");
-    const toolButtons = annotationControls
-      ? [...annotationControls.querySelectorAll("[aria-pressed]")]
-      : [];
-    const clearButton = annotationControls?.querySelector(
-      '[data-annotation="clear"]'
-    );
-    const progress = root.querySelector(".impressive-progress");
-    const canvases = new Map();
-    let annotationTool = "off";
-    let stroke = null;
-    let swipe = null;
+    /*
+     * Firefox 154 compatibility bridge.
+     *
+     * Modern browsers read slide geometry directly through typed attr()
+     * and compute viewport fit with typed arithmetic. If either feature is
+     * unavailable, JS only supplies those values as CSS custom properties.
+     */
+    const typedAttr =
+      CSS.supports("width", "attr(data-x px, 0px)") &&
+      CSS.supports("--test", "attr(data-scale type(<number>), 1)");
+    const typedMath = CSS.supports("scale", "calc(100vw / 1px)");
 
-    const activeStep = () =>
-      current.classList.contains("step") ? current : null;
+    const syncCompat = () => {
+      if (!typedAttr) {
+        for (const step of steps) setVars(step, "--", pose(step));
+      }
 
-    const setAnnotationTool = tool => {
-      annotationTool = tool;
-      root.dataset.annotationTool = tool;
-      for (const button of toolButtons) {
-        button.setAttribute(
-          "aria-pressed",
-          String(button.dataset.annotation === tool)
+      if (!typedMath) {
+        root.style.setProperty(
+          "--impressive-fit",
+          Math.min(innerWidth / 1200, innerHeight / 675) * .92
         );
       }
     };
 
-    if (annotationControls) {
+    const setCameraVars = values => setVars(root, "--camera-", values);
+
+    // Focused slides are always shown front-on:
+    // copy their world rotation to the camera state, and CSS applies its inverse.
+    const showStep = step => {
+      const values = pose(step);
+      setCameraVars({
+        ...values,
+        ...(!typedMath && { "inv-s": 1 / values.s })
+      });
+    };
+
+    const showOverview = marker => {
+      const W = 1200, H = 675, pad = 260;
+      const shown = items
+        .slice(0, items.indexOf(marker))
+        .filter(item => item.classList.contains("step"));
+
+      if (!shown.length) return;
+
+      const boxes = shown.map(step => {
+        const x = val(step, "x");
+        const y = val(step, "y");
+        const z = val(step, "z");
+        const scale = val(step, "scale", 1);
+        const rz = val(
+          step,
+          "rotateZ",
+          val(step, "rotate")
+        ) * Math.PI / 180;
+
+        const w = W * scale, h = H * scale;
+        const c = Math.abs(Math.cos(rz)), q = Math.abs(Math.sin(rz));
+        const dx = (w * c + h * q) / 2;
+        const dy = (w * q + h * c) / 2;
+
+        return {
+          l: x - dx, r: x + dx,
+          t: y - dy, b: y + dy,
+          z
+        };
+      });
+
+      const l = Math.min(...boxes.map(box => box.l));
+      const r = Math.max(...boxes.map(box => box.r));
+      const t = Math.min(...boxes.map(box => box.t));
+      const b = Math.max(...boxes.map(box => box.b));
+      const zn = Math.min(...boxes.map(box => box.z));
+      const zf = Math.max(...boxes.map(box => box.z));
+
+      const fit = Math.min(innerWidth / W, innerHeight / H) * .92;
+      const all = Math.min(
+        innerWidth / (r - l + 2 * pad),
+        innerHeight / (b - t + 2 * pad + (zf - zn) * .30)
+      ) * .88;
+      const scale = fit / all;
+
+      setCameraVars({
+        x: `${(l + r) / 2}px`,
+        y: `${(t + b) / 2}px`,
+        z: `${(zn + zf) / 2}px`,
+        rx: "18deg",
+        ry: "-16deg",
+        rz: "0deg",
+        s: scale,
+        ...(!typedMath && { "inv-s": 1 / scale })
+      });
+    };
+
+    const show = item => {
+      item.classList.contains("overview")
+        ? showOverview(item)
+        : showStep(item);
+    };
+
+    const resize = current => {
+      syncCompat();
+      if (current.classList.contains("overview")) showOverview(current);
+    };
+
+    return { resize, show, syncCompat };
+  };
+
+  const createAnnotations = (root, steps) => {
+    const controls = root.querySelector(".impressive-annotations");
+    const toolButtons = controls
+      ? [...controls.querySelectorAll("[aria-pressed]")]
+      : [];
+    const clearButton = controls?.querySelector('[data-annotation="clear"]');
+    const canvases = new Map();
+    let activeStep = null;
+    let tool = "off";
+    let stroke = null;
+
+    const setTool = nextTool => {
+      tool = nextTool;
+      root.dataset.annotationTool = nextTool;
+      for (const button of toolButtons) {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.annotation === nextTool)
+        );
+      }
+    };
+
+    if (controls) {
       for (const step of steps) {
         const canvas = document.createElement("canvas");
         canvas.className = "impressive-annotation";
@@ -96,14 +193,18 @@
       };
     };
 
-    const startStroke = (canvas, event) => {
+    const pointerDown = event => {
+      const canvas = closest(event.target, ".impressive-annotation");
+      if (!canvas || stroke || !event.isPrimary || tool === "off" ||
+          event.button !== 0) return false;
+
       const context = canvas.getContext("2d");
       const style = getComputedStyle(root);
       context.globalCompositeOperation =
-        annotationTool === "eraser" ? "destination-out" : "source-over";
+        tool === "eraser" ? "destination-out" : "source-over";
       context.strokeStyle = style.getPropertyValue("--impressive-ink").trim();
       context.lineWidth = Number(style.getPropertyValue(
-        `--impressive-${annotationTool === "eraser" ? "eraser" : "pen"}-width`
+        `--impressive-${tool === "eraser" ? "eraser" : "pen"}-width`
       ));
       context.lineCap = "round";
       context.lineJoin = "round";
@@ -116,219 +217,191 @@
       context.moveTo(p.x, p.y);
       context.lineTo(p.x + .01, p.y + .01);
       context.stroke();
+      return true;
     };
 
-    const stopStroke = event => {
+    const pointerMove = event => {
+      if (!stroke || event.pointerId !== stroke.id) return;
+      const p = point(stroke.canvas, event);
+      stroke.context.lineTo(p.x, p.y);
+      stroke.context.stroke();
+    };
+
+    const pointerEnd = event => {
       if (stroke?.id !== event.pointerId) return false;
       stroke.context.closePath();
       stroke = null;
       return true;
     };
 
-    setAnnotationTool("off");
+    const click = event => {
+      const control = closest(event.target, "[data-annotation]");
+      if (!control) return;
 
-    /*
-     * Firefox 154 compatibility bridge.
-     *
-     * Modern browsers read slide geometry directly through typed attr()
-     * and compute viewport fit with typed arithmetic. If either feature is
-     * unavailable, JS only supplies those values as CSS custom properties.
-     */
-    const typedAttr =
-      CSS.supports("width", "attr(data-x px, 0px)") &&
-      CSS.supports("--test", "attr(data-scale type(<number>), 1)");
-
-    const typedMath =
-      CSS.supports("scale", "calc(100vw / 1px)");
-
-    const syncCompat = () => {
-      if (!typedAttr) {
-        for (const s of steps) {
-          setVars(s, "--", pose(s));
-        }
-      }
-
-      if (!typedMath) {
-        root.style.setProperty(
-          "--impressive-fit",
-          Math.min(innerWidth / 1200, innerHeight / 675) * .92
-        );
+      const action = control.dataset.annotation;
+      if (action === "clear") {
+        const canvas = canvases.get(activeStep);
+        canvas?.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        setTool(action);
       }
     };
 
-    const vars = values => setVars(root, "--camera-", values);
-
-    // Focused slides are always shown front-on:
-    // copy their world rotation to the camera state, and CSS applies its inverse.
-    const camera = s => {
-      const values = pose(s);
-      vars({
-        ...values,
-        ...(!typedMath && { "inv-s": 1 / values.s })
-      });
+    const activate = step => {
+      activeStep = step;
+      if (clearButton) clearButton.disabled = !step;
+      if (!step) setTool("off");
     };
 
-    const overview = marker => {
-      const W = 1200, H = 675, pad = 260;
-      const shown = items
-        .slice(0, items.indexOf(marker))
-        .filter(x => x.classList.contains("step"));
-
-      if (!shown.length) return;
-
-      const boxes = shown.map(s => {
-        const x = val(s, "x");
-        const y = val(s, "y");
-        const z = val(s, "z");
-        const scale = val(s, "scale", 1);
-        const rz = val(s, "rotateZ", val(s, "rotate")) * Math.PI / 180;
-
-        const w = W * scale, h = H * scale;
-        const c = Math.abs(Math.cos(rz)), q = Math.abs(Math.sin(rz));
-        const dx = (w * c + h * q) / 2;
-        const dy = (w * q + h * c) / 2;
-
-        return {
-          l: x - dx, r: x + dx,
-          t: y - dy, b: y + dy,
-          z
-        };
-      });
-
-      const l = Math.min(...boxes.map(b => b.l));
-      const r = Math.max(...boxes.map(b => b.r));
-      const t = Math.min(...boxes.map(b => b.t));
-      const b = Math.max(...boxes.map(b => b.b));
-      const zn = Math.min(...boxes.map(b => b.z));
-      const zf = Math.max(...boxes.map(b => b.z));
-
-      const fit = Math.min(innerWidth / W, innerHeight / H) * .92;
-      const all = Math.min(
-        innerWidth / (r - l + 2 * pad),
-        innerHeight / (b - t + 2 * pad + (zf - zn) * .30)
-      ) * .88;
-
-      const scale = fit / all;
-
-      vars({
-        x: `${(l + r) / 2}px`,
-        y: `${(t + b) / 2}px`,
-        z: `${(zn + zf) / 2}px`,
-        rx: "18deg",
-        ry: "-16deg",
-        rz: "0deg",
-        s: scale,
-        ...(!typedMath && { "inv-s": 1 / scale })
-      });
+    const escape = () => {
+      if (tool === "off") return false;
+      setTool("off");
+      return true;
     };
+
+    setTool("off");
+
+    return {
+      activate,
+      click,
+      escape,
+      isPointerMode: () => tool === "off",
+      pointerDown,
+      pointerEnd,
+      pointerMove
+    };
+  };
+
+  const createNavigation = (root, items, steps, camera, annotations) => {
+    const progress = root.querySelector(".impressive-progress");
+    let current = items[0];
 
     const show = item => {
       current.classList.remove("active");
       current = item;
       current.classList.add("active");
-      item.classList.contains("overview") ? overview(item) : camera(item);
-      const step = activeStep();
-      if (clearButton) clearButton.disabled = !step;
-      if (!step) setAnnotationTool("off");
+      camera.show(item);
+
+      const step = item.classList.contains("step") ? item : null;
+      annotations.activate(step);
       if (progress) {
         const page = step
           ? steps.indexOf(step) + 1
           : items.slice(0, items.indexOf(item))
-            .filter(x => x.classList.contains("step")).length;
+            .filter(candidate => candidate.classList.contains("step")).length;
         progress.textContent = `${page} / ${steps.length}`;
       }
       if (item.id) history.replaceState(null, "", `#${item.id}`);
     };
 
-    const move = d => {
-      const i = Math.max(0, Math.min(items.length - 1, items.indexOf(current) + d));
-      show(items[i]);
+    const move = direction => {
+      const index = Math.max(0, Math.min(
+        items.length - 1,
+        items.indexOf(current) + direction
+      ));
+      show(items[index]);
     };
 
-    root.addEventListener("pointerdown", e => {
-      const canvas = e.target instanceof Element &&
-        e.target.closest(".impressive-annotation");
-      if (canvas && !stroke && e.isPrimary &&
-          annotationTool !== "off" && e.button === 0) {
-        startStroke(canvas, e);
-        return;
-      }
+    const resize = () => camera.resize(current);
+    const start = () => {
+      camera.syncCompat();
+      show(items.find(item =>
+        item.id && `#${item.id}` === location.hash
+      ) || items[0]);
+    };
 
-      if (swipe || !e.isPrimary || e.pointerType !== "touch" ||
-          annotationTool !== "off" ||
-          interactive(e.target)) return;
+    return { move, resize, start };
+  };
 
-      swipe = { id: e.pointerId, x: e.clientX, y: e.clientY };
+  const bindInput = (root, navigation, annotations) => {
+    const keyDirection = {
+      ArrowRight: 1, PageDown: 1, " ": 1,
+      ArrowLeft: -1, PageUp: -1
+    };
+    let swipe = null;
+
+    root.addEventListener("pointerdown", event => {
+      if (annotations.pointerDown(event)) return;
+
+      if (swipe || !event.isPrimary || event.pointerType !== "touch" ||
+          !annotations.isPointerMode() || interactive(event.target)) return;
+
+      swipe = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY
+      };
     });
 
-    root.addEventListener("pointermove", e => {
-      if (!stroke || e.pointerId !== stroke.id) return;
-      const p = point(stroke.canvas, e);
-      stroke.context.lineTo(p.x, p.y);
-      stroke.context.stroke();
-    });
+    root.addEventListener("pointermove", annotations.pointerMove);
 
-    root.addEventListener("pointerup", e => {
-      if (stopStroke(e)) return;
-      if (!swipe || e.pointerId !== swipe.id) return;
+    root.addEventListener("pointerup", event => {
+      if (annotations.pointerEnd(event)) return;
+      if (!swipe || event.pointerId !== swipe.id) return;
 
-      const dx = e.clientX - swipe.x;
-      const dy = e.clientY - swipe.y;
+      const dx = event.clientX - swipe.x;
+      const dy = event.clientY - swipe.y;
       swipe = null;
 
       if (Math.abs(dx) >= 60 && Math.abs(dx) > Math.abs(dy) * 1.25) {
-        move(dx < 0 ? 1 : -1);
-        e.preventDefault();
+        navigation.move(dx < 0 ? 1 : -1);
+        event.preventDefault();
       }
     });
 
-    root.addEventListener("pointercancel", e => {
-      stopStroke(e);
-      if (swipe?.id === e.pointerId) swipe = null;
+    root.addEventListener("pointercancel", event => {
+      annotations.pointerEnd(event);
+      if (swipe?.id === event.pointerId) swipe = null;
     });
 
-    root.addEventListener("click", e => {
-      if (e.target.closest("[data-prev]")) move(-1);
-      if (e.target.closest("[data-next]")) move(1);
-
-      const annotation = e.target.closest("[data-annotation]");
-      if (!annotation) return;
-
-      const action = annotation.dataset.annotation;
-      if (action === "clear") {
-        const canvas = canvases.get(activeStep());
-        canvas?.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-      } else {
-        setAnnotationTool(action);
-      }
+    root.addEventListener("click", event => {
+      if (closest(event.target, "[data-prev]")) navigation.move(-1);
+      if (closest(event.target, "[data-next]")) navigation.move(1);
+      annotations.click(event);
     });
 
-    window.addEventListener("keydown", e => {
-      if (e.key === "Escape" && annotationTool !== "off") {
-        setAnnotationTool("off");
-        e.preventDefault();
+    window.addEventListener("keydown", event => {
+      if (event.key === "Escape" && annotations.escape()) {
+        event.preventDefault();
         return;
       }
-      const control = interactive(e.target);
+      const control = interactive(event.target);
       if (control &&
-          (e.key === " " || control.matches(
+          (event.key === " " || closest(
+            event.target,
             "input, textarea, select, [contenteditable]"
           ))) {
         return;
       }
-      const direction = keyDirection[e.key];
+      const direction = keyDirection[event.key];
       if (!direction) return;
-      move(direction);
-      e.preventDefault();
+      navigation.move(direction);
+      event.preventDefault();
     });
 
-    window.addEventListener("resize", () => {
-      syncCompat();
-      if (current.classList.contains("overview")) overview(current);
-    });
+    window.addEventListener("resize", navigation.resize);
+  };
 
-    syncCompat();
-    show(items.find(x => x.id && `#${x.id}` === location.hash) || items[0]);
+  const init = () => {
+    const root = document.querySelector(".impressive");
+    if (!root) return;
+
+    const items = [...root.querySelectorAll(".step, .overview")];
+    if (!items.length) return;
+
+    const steps = items.filter(item => item.classList.contains("step"));
+    const camera = createCamera(root, items, steps);
+    const annotations = createAnnotations(root, steps);
+    const navigation = createNavigation(
+      root,
+      items,
+      steps,
+      camera,
+      annotations
+    );
+
+    bindInput(root, navigation, annotations);
+    navigation.start();
   };
 
   if (document.readyState === "loading") {
