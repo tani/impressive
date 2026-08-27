@@ -56,6 +56,7 @@
     const clearButton = annotationControls?.querySelector(
       '[data-annotation="clear"]'
     );
+    const progress = root.querySelector(".impressive-progress");
     const canvases = new Map();
     let annotationTool = "off";
     let stroke = null;
@@ -229,6 +230,13 @@
       const step = activeStep();
       if (clearButton) clearButton.disabled = !step;
       if (!step) setAnnotationTool("off");
+      if (progress) {
+        const page = step
+          ? steps.indexOf(step) + 1
+          : items.slice(0, items.indexOf(item))
+            .filter(x => x.classList.contains("step")).length;
+        progress.textContent = `${page} / ${steps.length}`;
+      }
       if (item.id) history.replaceState(null, "", `#${item.id}`);
     };
 

@@ -103,6 +103,10 @@ body {
   background: #e7e6e1;
 }
 
+.impressive-progress {
+  font-variant-numeric: tabular-nums;
+}
+
 .impressive-annotations button:disabled {
   opacity: .4;
   cursor: default;

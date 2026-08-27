@@ -232,6 +232,7 @@ the directory containing this exporter."
        (concat
         "<nav class=\"impressive-controls\" aria-label=\"Presentation controls\">\n"
         "  <button type=\"button\" data-prev aria-label=\"Previous slide\">←</button>\n"
+        "  <output class=\"impressive-progress\" aria-label=\"Slide progress\" aria-live=\"polite\"></output>\n"
         "  <button type=\"button\" data-next aria-label=\"Next slide\">→</button>\n"
         "</nav>\n"))
      "<div class=\"impressive-annotations\" role=\"toolbar\" aria-label=\"Slide annotations\">\n"

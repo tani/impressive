@@ -39,6 +39,7 @@ Load the core files and optional theme from jsDelivr:
 
     <nav class="impressive-controls" aria-label="Presentation controls">
       <button type="button" data-prev aria-label="Previous slide">←</button>
+      <output class="impressive-progress" aria-label="Slide progress" aria-live="polite"></output>
       <button type="button" data-next aria-label="Next slide">→</button>
     </nav>
 
@@ -143,6 +144,9 @@ The built-in navigation controls are:
 - Previous: Left Arrow, Page Up, or swipe right
 
 Buttons inside `.impressive` with `data-prev` or `data-next` receive the same previous and next behavior. Navigation updates the URL hash without adding a browser-history entry.
+
+An `.impressive-progress` output displays the current slide number and total
+slide count. Overview markers are not counted as slides.
 
 Touch swipes are recognized in Pointer mode. Pen and Eraser modes reserve
 touch input for annotation instead of navigation.
