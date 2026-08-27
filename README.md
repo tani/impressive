@@ -2,7 +2,9 @@
 
 `impressive.css` and `impressive.js` turn ordinary HTML sections into a camera-driven 3D presentation. Slide positions and rotations live in `data-*` attributes, so a deck does not need slide-specific CSS. Visual themes are separate from the presentation engine.
 
-## Quick start
+## Usage
+
+### HTML quick start
 
 Load the core files and optional theme from jsDelivr:
 
@@ -51,7 +53,7 @@ URL hash.
 
 See [`index.html`](index.html) for a complete deck.
 
-## Org mode exporter
+### Org mode exporter
 
 `ox-impressive.el` provides an Org export backend derived from the standard
 HTML backend. Add this directory to `load-path`, then load the exporter:
@@ -105,7 +107,9 @@ Export through `C-c C-e I`, or call `org-impressive-export-to-html`. The
 `IMPRESSIVE_CONTROLS` keywords override the corresponding exporter defaults.
 The first three keywords name files whose contents are embedded in the output.
 
-## Slide attributes
+## Authoring presentations
+
+### Slide attributes
 
 Every slide must be a direct child of `.impressive` and have the `step` class. An `id` is recommended because it provides a bookmarkable URL hash. No camera wrapper is required.
 
@@ -124,7 +128,7 @@ Every slide must be a direct child of `.impressive` and have the `step` class. A
 
 Slides are visited in DOM order.
 
-## Navigation
+### Navigation
 
 The built-in keyboard controls are:
 
@@ -135,7 +139,7 @@ The built-in keyboard controls are:
 
 Buttons inside `.impressive` with `data-prev` or `data-next` receive the same previous and next behavior. Navigation updates the URL hash without adding a browser-history entry.
 
-## Overview markers
+### Overview markers
 
 Insert an overview marker among the slides to add a zoomed-out view of all preceding slides:
 
@@ -150,7 +154,9 @@ Insert an overview marker among the slides to add a zoomed-out view of all prece
 
 An overview participates in navigation according to its position in the DOM. Give it an `id` so it can be linked directly.
 
-## Customization
+## Styling
+
+### Core stylesheet
 
 The core stylesheet does not choose a font, color palette, type scale, or
 control appearance. Add those choices in a separate stylesheet after loading
@@ -206,11 +212,15 @@ You can also add deck-specific typography and component styles with ordinary sel
 }
 ```
 
-## Browser notes
+## Reference
+
+### Browser support
 
 The presentation targets modern browsers with CSS 3D transforms and `:has()` support. `impressive.js` supplies compatibility values when typed CSS `attr()` or viewport arithmetic is unavailable. Reduced-motion preferences disable slide and camera transitions.
 
-## Acknowledgements
+## Project
+
+### Acknowledgements
 
 This project owes an obvious conceptual debt to
 [impress.js](https://github.com/impress/impress.js), created by Bartek Szopka
@@ -226,7 +236,7 @@ state, overview calculation, and compatibility bridging. Keeping the codebase
 small is a design goal: fewer moving parts make the behavior easier to
 understand and reduce the surface area for future bugs.
 
-## License
+### License
 
 `SPDX-License-Identifier: 0BSD`
 
