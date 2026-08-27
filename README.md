@@ -4,7 +4,7 @@
 
 ## Quick start
 
-Place `impressive.css`, `impressive.js`, and any optional theme beside your HTML file, then use this structure:
+Load the core files and optional theme from jsDelivr:
 
 ```html
 <!doctype html>
@@ -13,9 +13,9 @@ Place `impressive.css`, `impressive.js`, and any optional theme beside your HTML
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My presentation</title>
-  <link rel="stylesheet" href="impressive.css">
-  <link rel="stylesheet" href="impressive-academia-light.css">
-  <script src="impressive.js" defer></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tani/impressive/impressive.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tani/impressive/impressive-academia-light.css">
+  <script src="https://cdn.jsdelivr.net/gh/tani/impressive/impressive.js" defer></script>
 </head>
 <body>
   <div class="impressive">
@@ -49,7 +49,7 @@ structural defaults. External scripts can be loaded from the document head
 with `defer`. The script initializes the first slide, or the slide named by the
 URL hash.
 
-See [`example.html`](example.html) for a complete deck.
+See [`index.html`](index.html) for a complete deck.
 
 ## Org mode exporter
 
@@ -170,8 +170,8 @@ academic appearance:
 Load it after the core stylesheet:
 
 ```html
-<link rel="stylesheet" href="impressive.css">
-<link rel="stylesheet" href="impressive-academia-light.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tani/impressive/impressive.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tani/impressive/impressive-academia-light.css">
 ```
 
 Add deck-specific overrides after the theme. For example:
@@ -209,14 +209,6 @@ You can also add deck-specific typography and component styles with ordinary sel
 ## Browser notes
 
 The presentation targets modern browsers with CSS 3D transforms and `:has()` support. `impressive.js` supplies compatibility values when typed CSS `attr()` or viewport arithmetic is unavailable. Reduced-motion preferences disable slide and camera transitions.
-
-## Files
-
-- `impressive.css` owns 3D layout, transforms, transitions, and minimal structural styling.
-- `impressive-academia-light.css` is an optional light academic theme.
-- `impressive.js` handles navigation, camera state, overview framing, URL hashes, and CSS compatibility values.
-- `ox-impressive.el` exports Org mode documents as impressive.js presentations.
-- `example.html` demonstrates a complete presentation using the academia light theme.
 
 ## Acknowledgements
 
