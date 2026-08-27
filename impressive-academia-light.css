@@ -1,0 +1,103 @@
+/*
+ * SPDX-License-Identifier: 0BSD
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * Academic light theme for impressive.js.
+ * Load this file after impressive.css.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  color: #1f1f1d;
+  background: #f2f1ed;
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    Palatino,
+    "Book Antiqua",
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.step {
+  padding: 5.5rem 6.5rem;
+  color: #1f1f1d;
+  background: rgb(242 241 237 / 88%);
+}
+
+.step h1,
+.step h2,
+.step h3 {
+  font-weight: 600;
+}
+
+.step h1 {
+  margin: 0 0 2rem;
+  font-size: 4rem;
+  line-height: 1.08;
+  letter-spacing: -.02em;
+}
+
+.step h2 {
+  margin: 0 0 2rem;
+  font-size: 2.75rem;
+  line-height: 1.15;
+  letter-spacing: -.015em;
+}
+
+.step h3 {
+  margin: 1.5rem 0 .75rem;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.step p,
+.step li {
+  font-size: 1.7rem;
+  line-height: 1.6;
+}
+
+.step pre {
+  margin: 1.5rem 0;
+  overflow: auto;
+  color: #1f1f1d;
+  background: transparent;
+  font: 1.3rem/1.5 ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.step a {
+  color: inherit;
+  text-decoration-thickness: .06em;
+  text-underline-offset: .14em;
+}
+
+.impressive-controls button {
+  padding: .35rem .65rem;
+  border: 0;
+  color: #1f1f1d;
+  background: transparent;
+  font: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.impressive-controls button:hover,
+.impressive-controls button:focus-visible {
+  background: #e7e6e1;
+}

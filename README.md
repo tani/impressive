@@ -1,10 +1,10 @@
 # impressive.js
 
-`impressive.css` and `impressive.js` turn ordinary HTML sections into a camera-driven 3D presentation. Slide positions and rotations live in `data-*` attributes, so a deck does not need slide-specific CSS.
+`impressive.css` and `impressive.js` turn ordinary HTML sections into a camera-driven 3D presentation. Slide positions and rotations live in `data-*` attributes, so a deck does not need slide-specific CSS. Visual themes are separate from the presentation engine.
 
 ## Quick start
 
-Place `impressive.css` and `impressive.js` beside your HTML file, then use this structure:
+Place `impressive.css`, `impressive.js`, and any optional theme beside your HTML file, then use this structure:
 
 ```html
 <!doctype html>
@@ -14,6 +14,7 @@ Place `impressive.css` and `impressive.js` beside your HTML file, then use this 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My presentation</title>
   <link rel="stylesheet" href="impressive.css">
+  <link rel="stylesheet" href="impressive-academia-light.css">
 </head>
 <body>
   <div class="impressive">
@@ -44,7 +45,9 @@ Place `impressive.css` and `impressive.js` beside your HTML file, then use this 
 </html>
 ```
 
-Load the script after the presentation markup. The script initializes the first slide, or the slide named by the URL hash.
+Load a theme after `impressive.css` so that its visual rules can override the
+structural defaults. Load the script after the presentation markup. The script
+initializes the first slide, or the slide named by the URL hash.
 
 See [`example.html`](example.html) for a complete deck.
 
@@ -95,29 +98,55 @@ An overview participates in navigation according to its position in the DOM. Giv
 
 ## Customization
 
-Override the default custom properties after loading `impressive.css`:
+The core stylesheet does not choose a font, color palette, type scale, or
+control appearance. Add those choices in a separate stylesheet after loading
+`impressive.css`.
+
+### Academia light theme
+
+The included `impressive-academia-light.css` theme provides a restrained
+academic appearance:
+
+- a warm, low-contrast light canvas;
+- dark charcoal text and a serif font stack;
+- generous slide margins and a conventional type hierarchy;
+- slightly translucent slide surfaces; and
+- no borders, rounded corners, or shadows.
+
+Load it after the core stylesheet:
+
+```html
+<link rel="stylesheet" href="impressive.css">
+<link rel="stylesheet" href="impressive-academia-light.css">
+```
+
+Add deck-specific overrides after the theme. For example:
 
 ```css
-:root {
-  --impressive-duration: 500ms;
-  --impressive-ease: ease-in-out;
-  --impressive-bg: #171225;
-  --impressive-text: #fff;
-  --impressive-muted: #c8bddb;
-  --impressive-accent: #ff8bd8;
-  --impressive-border: rgb(255 255 255 / 18%);
+body {
+  background: white;
+  color: black;
+}
+
+.step {
+  background: rgb(255 255 255 / 92%);
+}
+
+.step h1 {
+  font-size: 4.5rem;
 }
 ```
 
-The default slide canvas is `1200 × 675` pixels. The JavaScript overview and viewport fallback calculations use those dimensions too, so changing `--impressive-slide-width` or `--impressive-slide-height` also requires updating the corresponding `W`, `H`, and fallback fit values in `impressive.js`.
+Motion can still be configured with `--impressive-duration` and
+`--impressive-ease`. The default slide canvas is `1200 × 675` pixels. The
+JavaScript overview and viewport fallback calculations use those dimensions
+too, so changing `--impressive-slide-width` or
+`--impressive-slide-height` also requires updating the corresponding `W`, `H`,
+and fallback fit values in `impressive.js`.
 
-You can add deck-specific typography and component styles with ordinary selectors:
+You can also add deck-specific typography and component styles with ordinary selectors:
 
 ```css
-.step h1 {
-  font-size: 80px;
-}
-
 .step.callout {
   background: #30204d;
 }
@@ -129,6 +158,24 @@ The presentation targets modern browsers with CSS 3D transforms and `:has()` sup
 
 ## Files
 
-- `impressive.css` owns layout, transforms, transitions, and default presentation styling.
+- `impressive.css` owns 3D layout, transforms, transitions, and minimal structural styling.
+- `impressive-academia-light.css` is an optional light academic theme.
 - `impressive.js` handles navigation, camera state, overview framing, URL hashes, and CSS compatibility values.
-- `example.html` demonstrates a complete presentation.
+- `example.html` demonstrates a complete presentation using the academia light theme.
+
+## License
+
+`SPDX-License-Identifier: 0BSD`
+
+Zero-Clause BSD:
+
+> Permission to use, copy, modify, and/or distribute this software for any
+> purpose with or without fee is hereby granted.
+>
+> THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+> WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+> MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+> SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+> WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+> OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+> CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
