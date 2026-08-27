@@ -16,26 +16,24 @@ Place `impressive.css` and `impressive.js` beside your HTML file, then use this 
   <link rel="stylesheet" href="impressive.css">
 </head>
 <body>
-  <div class="impress">
-    <div class="impress-camera">
-      <section id="intro" class="step" data-x="0" data-y="0">
-        <h1>Hello</h1>
-      </section>
+  <div class="impressive">
+    <section id="intro" class="step" data-x="0" data-y="0">
+      <h1>Hello</h1>
+    </section>
 
-      <section
-        id="details"
-        class="step"
-        data-x="1400"
-        data-y="200"
-        data-z="-500"
-        data-rotate-y="20"
-        data-rotate-z="5"
-        data-scale="0.9">
-        <h2>Position slides in 3D</h2>
-      </section>
-    </div>
+    <section
+      id="details"
+      class="step"
+      data-x="1400"
+      data-y="200"
+      data-z="-500"
+      data-rotate-y="20"
+      data-rotate-z="5"
+      data-scale="0.9">
+      <h2>Position slides in 3D</h2>
+    </section>
 
-    <nav class="impress-controls" aria-label="Presentation controls">
+    <nav class="impressive-controls" aria-label="Presentation controls">
       <button type="button" data-prev aria-label="Previous slide">←</button>
       <button type="button" data-next aria-label="Next slide">→</button>
     </nav>
@@ -52,7 +50,7 @@ See [`example.html`](example.html) for a complete deck.
 
 ## Slide attributes
 
-Every slide must have the `step` class. An `id` is recommended because it provides a bookmarkable URL hash.
+Every slide must be a direct child of `.impressive` and have the `step` class. An `id` is recommended because it provides a bookmarkable URL hash. No camera wrapper is required.
 
 | Attribute | Meaning | Default |
 | --- | --- | ---: |
@@ -78,7 +76,7 @@ The built-in keyboard controls are:
 - First slide: Home
 - Last item: End
 
-Buttons inside `.impress` with `data-prev` or `data-next` receive the same previous and next behavior. Navigation updates the URL hash without adding a browser-history entry.
+Buttons inside `.impressive` with `data-prev` or `data-next` receive the same previous and next behavior. Navigation updates the URL hash without adding a browser-history entry.
 
 ## Overview markers
 
@@ -101,17 +99,17 @@ Override the default custom properties after loading `impressive.css`:
 
 ```css
 :root {
-  --impress-duration: 500ms;
-  --impress-ease: ease-in-out;
-  --impress-bg: #171225;
-  --impress-text: #fff;
-  --impress-muted: #c8bddb;
-  --impress-accent: #ff8bd8;
-  --impress-border: rgb(255 255 255 / 18%);
+  --impressive-duration: 500ms;
+  --impressive-ease: ease-in-out;
+  --impressive-bg: #171225;
+  --impressive-text: #fff;
+  --impressive-muted: #c8bddb;
+  --impressive-accent: #ff8bd8;
+  --impressive-border: rgb(255 255 255 / 18%);
 }
 ```
 
-The default slide canvas is `1200 × 675` pixels. The JavaScript overview and viewport fallback calculations use those dimensions too, so changing `--impress-slide-width` or `--impress-slide-height` also requires updating the corresponding `W`, `H`, and fallback fit values in `impressive.js`.
+The default slide canvas is `1200 × 675` pixels. The JavaScript overview and viewport fallback calculations use those dimensions too, so changing `--impressive-slide-width` or `--impressive-slide-height` also requires updating the corresponding `W`, `H`, and fallback fit values in `impressive.js`.
 
 You can add deck-specific typography and component styles with ordinary selectors:
 

@@ -1,5 +1,5 @@
 (() => {
-  const root = document.querySelector(".impress");
+  const root = document.querySelector(".impressive");
   const items = [...root.querySelectorAll(".step, .overview")];
   const steps = items.filter(x => x.classList.contains("step"));
   const val = (s, k, d = 0) => Number(s.dataset[k] ?? d);
@@ -37,7 +37,7 @@
 
     if (!typedMath) {
       root.style.setProperty(
-        "--impress-fit",
+        "--impressive-fit",
         Math.min(innerWidth / 1200, innerHeight / 675) * .92
       );
     }

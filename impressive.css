@@ -1,5 +1,5 @@
 /*
- * impress.css
+ * impressive.css
  * CSS owns layout, transforms, transitions, and rendering.
  * JavaScript only bridges the active slide's data-* attributes to --camera-*.
  */
@@ -7,43 +7,43 @@
 :root {
   color-scheme: dark;
 
-  --impress-slide-width: 1200px;
-  --impress-slide-height: 675px;
+  --impressive-slide-width: 1200px;
+  --impressive-slide-height: 675px;
 
   /* Modern typed CSS arithmetic (Chromium/Safari modern baseline). */
   /* JS supplies a numeric fallback on browsers without typed arithmetic. */
-  --impress-fit: 1;
+  --impressive-fit: 1;
 
   @supports (scale: calc(100vw / 1px)) {
-    --impress-fit:
+    --impressive-fit:
       min(
         calc(92vw / 1200px),
         calc(92vh / 675px)
       );
   }
 
-  --impress-duration: 800ms;
-  --impress-ease: cubic-bezier(.2, .75, .2, 1);
+  --impressive-duration: 800ms;
+  --impressive-ease: cubic-bezier(.2, .75, .2, 1);
 
-  --impress-bg: #0b0f14;
-  --impress-panel: #111821;
-  --impress-text: #e8eef6;
-  --impress-muted: #9ba9ba;
-  --impress-accent: #7cc4ff;
-  --impress-border: rgb(255 255 255 / 12%);
+  --impressive-bg: #0b0f14;
+  --impressive-panel: #111821;
+  --impressive-text: #e8eef6;
+  --impressive-muted: #9ba9ba;
+  --impressive-accent: #7cc4ff;
+  --impressive-border: rgb(255 255 255 / 12%);
 }
 
 
 @supports (scale: calc(100vw / 1px)) {
   :root {
-    --impress-fit:
+    --impressive-fit:
       min(
         calc(92vw / 1200px),
         calc(92vh / 675px)
       );
   }
 
-  .impress {
+  .impressive {
     --camera-inv-s: calc(1 / var(--camera-s));
   }
 }
@@ -61,8 +61,8 @@ body {
 }
 
 body {
-  background: var(--impress-bg);
-  color: var(--impress-text);
+  background: var(--impressive-bg);
+  color: var(--impressive-text);
   font-family:
     Inter,
     ui-sans-serif,
@@ -73,7 +73,7 @@ body {
     sans-serif;
 }
 
-.impress {
+.impressive {
   --camera-x: 0px;
   --camera-y: 0px;
   --camera-z: 0px;
@@ -93,50 +93,7 @@ body {
   background:
     radial-gradient(circle at 20% 15%, rgb(124 196 255 / 8%), transparent 30%),
     radial-gradient(circle at 80% 75%, rgb(160 120 255 / 6%), transparent 35%),
-    var(--impress-bg);
-}
-
-/*
- * The camera uses values supplied by the bridge.
- * No deck-specific selector appears in this stylesheet.
- */
-.impress-camera {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-
-  transform-style: preserve-3d;
-  transition: transform var(--impress-duration) var(--impress-ease);
-
-  /*
-   * Exact inverse of a focused slide's world transform:
-   *
-   *   T(x,y,z) Rx Ry Rz S
-   *
-   * becomes
-   *
-   *   S^-1 Rz^-1 Ry^-1 Rx^-1 T^-1
-   *
-   * Therefore every focused slide is displayed front-on and level,
-   * regardless of how it is tilted in the 3D world.
-   */
-  transform:
-    scale(
-      calc(
-        var(--impress-fit) *
-        var(--camera-inv-s)
-      )
-    )
-    rotateZ(calc(-1 * var(--camera-rz)))
-    rotateY(calc(-1 * var(--camera-ry)))
-    rotateX(calc(-1 * var(--camera-rx)))
-    translate3d(
-      calc(-1 * var(--camera-x)),
-      calc(-1 * var(--camera-y)),
-      calc(-1 * var(--camera-z))
-    );
+    var(--impressive-bg);
 }
 
 /*
@@ -189,21 +146,38 @@ body {
   --s: attr(data-scale type(<number>), 1);
 
   position: absolute;
-  left: calc(var(--impress-slide-width) / -2);
-  top: calc(var(--impress-slide-height) / -2);
+  left: 50%;
+  top: 50%;
+  margin-left: calc(var(--impressive-slide-width) / -2);
+  margin-top: calc(var(--impressive-slide-height) / -2);
 
-  width: var(--impress-slide-width);
-  height: var(--impress-slide-height);
+  width: var(--impressive-slide-width);
+  height: var(--impressive-slide-height);
   padding: 64px;
 
   /*
-   * World transform:
-   *   T · Rx · Ry · Rz · S
+   * Compose the shared camera transform with this slide's world transform:
    *
-   * The focused camera applies its exact inverse, so the selected
-   * slide ends up front-on and horizontal.
+   *   (S^-1 · Rz^-1 · Ry^-1 · Rx^-1 · T^-1)
+   *   · (T · Rx · Ry · Rz · S)
+   *
+   * The focused slide's transforms cancel, leaving it front-on and level.
    */
   transform:
+    scale(
+      calc(
+        var(--impressive-fit) *
+        var(--camera-inv-s)
+      )
+    )
+    rotateZ(calc(-1 * var(--camera-rz)))
+    rotateY(calc(-1 * var(--camera-ry)))
+    rotateX(calc(-1 * var(--camera-rx)))
+    translate3d(
+      calc(-1 * var(--camera-x)),
+      calc(-1 * var(--camera-y)),
+      calc(-1 * var(--camera-z))
+    )
     translate3d(var(--x), var(--y), var(--z))
     rotateX(var(--rx))
     rotateY(var(--ry))
@@ -216,7 +190,7 @@ body {
   opacity: 1;
   filter: none;
 
-  border: 1px solid var(--impress-border);
+  border: 1px solid var(--impressive-border);
   border-radius: 26px;
 
   background:
@@ -227,10 +201,12 @@ body {
     0 40px 120px rgb(0 0 0 / 32%),
     inset 0 1px 0 rgb(255 255 255 / 5%);
 
-  transition: box-shadow 350ms ease;
+  transition:
+    transform var(--impressive-duration) var(--impressive-ease),
+    box-shadow 350ms ease;
 }
 
-.impress:not(:has(.step:target, #_overview:target)) .step:first-child,
+.impressive:not(:has(.step:target, .overview:target)) .step:first-child,
 .step:target {
   opacity: 1;
   filter: none;
@@ -241,17 +217,10 @@ body {
     inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
-.impress:has(#_overview:target) .step {
+.impressive:has(.overview:target) .step {
   opacity: .95;
   filter: none;
   cursor: pointer;
-}
-
-#_overview {
-  position: fixed;
-  width: 0;
-  height: 0;
-  overflow: hidden;
 }
 
 /* Minimal default presentation styling. */
@@ -272,7 +241,7 @@ body {
 .step li {
   font-size: 27px;
   line-height: 1.5;
-  color: var(--impress-muted);
+  color: var(--impressive-muted);
 }
 
 .step pre {
@@ -286,11 +255,11 @@ body {
   font: 21px/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
-.impress-accent {
-  color: var(--impress-accent);
+.impressive-accent {
+  color: var(--impressive-accent);
 }
 
-.impress-controls {
+.impressive-controls {
   position: fixed;
   z-index: 20;
   top: 18px;
@@ -308,7 +277,7 @@ body {
   backdrop-filter: blur(14px);
 }
 
-.impress-controls button {
+.impressive-controls button {
   min-width: 40px;
   height: 40px;
   padding: 0 12px;
@@ -322,13 +291,12 @@ body {
   cursor: pointer;
 }
 
-.impress-controls button:hover {
+.impressive-controls button:hover {
   background: rgb(255 255 255 / 9%);
 }
 
 
 @media (prefers-reduced-motion: reduce) {
-  .impress-camera,
   .step {
     transition: none;
   }
