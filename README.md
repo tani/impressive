@@ -185,7 +185,9 @@ Insert an overview marker among the slides to add a zoomed-out view of all prece
 <section id="three" class="step" data-x="2800" data-y="0">...</section>
 ```
 
-An overview participates in navigation according to its position in the DOM. Give it an `id` so it can be linked directly.
+An overview participates in navigation according to its position in the DOM.
+It displays only the preceding slides; later slides remain hidden until
+navigation resumes. Give the marker an `id` so it can be linked directly.
 
 ## Styling
 
