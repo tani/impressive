@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>impress.css example</title>
+  <link rel="stylesheet" href="impressive.css">
+</head>
+
+<body>
+<div class="impress">
+  <div class="impress-camera">
+
+    <section
+      id="title"
+      class="step"
+      data-x="0"
+      data-y="0"
+      data-scale="1">
+      <h1>impress.<span class="impress-accent">css</span></h1>
+      <p>Slides may be tilted in 3D space, but focused slides are always shown front-on.</p>
+    </section>
+
+    <section
+      id="layout"
+      class="step"
+      data-x="1450"
+      data-y="0"
+      data-z="-500"
+      data-rotate-x="8"
+      data-rotate-y="-18"
+      data-rotate-z="4"
+      data-scale=".92">
+      <h2>3D coordinates live only in HTML</h2>
+
+      <pre><code>&lt;section
+  class="step"
+  data-x="1450"
+  data-y="0"
+  data-rotate="4"
+  data-scale=".92"&gt;</code></pre>
+    </section>
+
+    <section
+      id="camera"
+      class="step"
+      data-x="2900"
+      data-y="-700"
+      data-z="-1300"
+      data-rotate-x="-10"
+      data-rotate-y="28"
+      data-rotate-z="-7"
+      data-scale="1.08">
+      <h2>No slide IDs in impress.css</h2>
+      <p>
+        The tiny JavaScript bridge reads the active step's data-* attributes
+        and exposes them as camera custom properties.
+      </p>
+    </section>
+
+    <section
+      id="overview-demo"
+      class="step"
+      data-x="2850"
+      data-y="1000"
+      data-z="-2200"
+      data-rotate-x="14"
+      data-rotate-y="-32"
+      data-rotate-z="7"
+      data-scale=".8">
+      <h2>Overview is a 3D camera state</h2>
+      <p>Insert <code>&lt;div class="overview"&gt;&lt;/div&gt;</code>; it shows all preceding slides.</p>
+    </section>
+
+    <div id="overview-1" class="overview"></div>
+
+    <section
+      id="finish"
+      class="step"
+      data-x="900"
+      data-y="1550"
+      data-z="-800"
+      data-rotate-x="-6"
+      data-rotate-y="16"
+      data-rotate-z="-4"
+      data-scale="1.05">
+      <h1>
+        HTML + imports.<br>
+        <span class="impress-accent">No deck-specific CSS.</span>
+      </h1>
+    </section>
+
+  </div>
+
+  <nav class="impress-controls" aria-label="Presentation controls">
+    <button type="button" data-prev aria-label="Previous slide">←</button>
+    <button type="button" data-next aria-label="Next slide">→</button>
+  </nav>
+</div>
+  <script src="impressive.js"></script>
+</body>
+</html>

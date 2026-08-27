@@ -1,0 +1,335 @@
+/*
+ * impress.css
+ * CSS owns layout, transforms, transitions, and rendering.
+ * JavaScript only bridges the active slide's data-* attributes to --camera-*.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --impress-slide-width: 1200px;
+  --impress-slide-height: 675px;
+
+  /* Modern typed CSS arithmetic (Chromium/Safari modern baseline). */
+  /* JS supplies a numeric fallback on browsers without typed arithmetic. */
+  --impress-fit: 1;
+
+  @supports (scale: calc(100vw / 1px)) {
+    --impress-fit:
+      min(
+        calc(92vw / 1200px),
+        calc(92vh / 675px)
+      );
+  }
+
+  --impress-duration: 800ms;
+  --impress-ease: cubic-bezier(.2, .75, .2, 1);
+
+  --impress-bg: #0b0f14;
+  --impress-panel: #111821;
+  --impress-text: #e8eef6;
+  --impress-muted: #9ba9ba;
+  --impress-accent: #7cc4ff;
+  --impress-border: rgb(255 255 255 / 12%);
+}
+
+
+@supports (scale: calc(100vw / 1px)) {
+  :root {
+    --impress-fit:
+      min(
+        calc(92vw / 1200px),
+        calc(92vh / 675px)
+      );
+  }
+
+  .impress {
+    --camera-inv-s: calc(1 / var(--camera-s));
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--impress-bg);
+  color: var(--impress-text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.impress {
+  --camera-x: 0px;
+  --camera-y: 0px;
+  --camera-z: 0px;
+  --camera-rx: 0deg;
+  --camera-ry: 0deg;
+  --camera-rz: 0deg;
+  --camera-s: 1;
+  --camera-inv-s: 1;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  perspective: 1600px;
+  transform-style: preserve-3d;
+
+  background:
+    radial-gradient(circle at 20% 15%, rgb(124 196 255 / 8%), transparent 30%),
+    radial-gradient(circle at 80% 75%, rgb(160 120 255 / 6%), transparent 35%),
+    var(--impress-bg);
+}
+
+/*
+ * The camera uses values supplied by the bridge.
+ * No deck-specific selector appears in this stylesheet.
+ */
+.impress-camera {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+
+  transform-style: preserve-3d;
+  transition: transform var(--impress-duration) var(--impress-ease);
+
+  /*
+   * Exact inverse of a focused slide's world transform:
+   *
+   *   T(x,y,z) Rx Ry Rz S
+   *
+   * becomes
+   *
+   *   S^-1 Rz^-1 Ry^-1 Rx^-1 T^-1
+   *
+   * Therefore every focused slide is displayed front-on and level,
+   * regardless of how it is tilted in the 3D world.
+   */
+  transform:
+    scale(
+      calc(
+        var(--impress-fit) *
+        var(--camera-inv-s)
+      )
+    )
+    rotateZ(calc(-1 * var(--camera-rz)))
+    rotateY(calc(-1 * var(--camera-ry)))
+    rotateX(calc(-1 * var(--camera-rx)))
+    translate3d(
+      calc(-1 * var(--camera-x)),
+      calc(-1 * var(--camera-y)),
+      calc(-1 * var(--camera-z))
+    );
+}
+
+/*
+ * Public authoring API:
+ *
+ *   data-x
+ *   data-y
+ *   data-z
+ *   data-rotate
+ *   data-scale
+ *
+ * A step's own world transform is read directly from HTML with attr().
+ */
+
+/*
+ * An overview is a presentation state, not a visible slide.
+ * Place it anywhere among the .step elements:
+ *
+ *   <div class="overview" id="overview-1"></div>
+ *
+ * Reaching it zooms out to all preceding slides.
+ */
+.overview {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.step {
+  /*
+   * Safe defaults. Modern browsers override these with typed attr().
+   * Firefox 154 receives the real values from the tiny compatibility bridge.
+   */
+  --x: 0px;
+  --y: 0px;
+  --z: 0px;
+  --rx: 0deg;
+  --ry: 0deg;
+  --rz: 0deg;
+  --s: 1;
+
+  --x: attr(data-x px, 0px);
+  --y: attr(data-y px, 0px);
+  --z: attr(data-z px, 0px);
+  --rx: attr(data-rotate-x deg, 0deg);
+  --ry: attr(data-rotate-y deg, 0deg);
+  --rz: attr(data-rotate-z deg, attr(data-rotate deg, 0deg));
+  --s: attr(data-scale type(<number>), 1);
+
+  position: absolute;
+  left: calc(var(--impress-slide-width) / -2);
+  top: calc(var(--impress-slide-height) / -2);
+
+  width: var(--impress-slide-width);
+  height: var(--impress-slide-height);
+  padding: 64px;
+
+  /*
+   * World transform:
+   *   T · Rx · Ry · Rz · S
+   *
+   * The focused camera applies its exact inverse, so the selected
+   * slide ends up front-on and horizontal.
+   */
+  transform:
+    translate3d(var(--x), var(--y), var(--z))
+    rotateX(var(--rx))
+    rotateY(var(--ry))
+    rotateZ(var(--rz))
+    scale(var(--s));
+
+  transform-origin: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  opacity: 1;
+  filter: none;
+
+  border: 1px solid var(--impress-border);
+  border-radius: 26px;
+
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 3.5%), rgb(255 255 255 / 1%)),
+    rgb(17 24 33 / 94%);
+
+  box-shadow:
+    0 40px 120px rgb(0 0 0 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+
+  transition: box-shadow 350ms ease;
+}
+
+.impress:not(:has(.step:target, #_overview:target)) .step:first-child,
+.step:target {
+  opacity: 1;
+  filter: none;
+
+  box-shadow:
+    0 48px 160px rgb(0 0 0 / 45%),
+    0 0 0 1px rgb(124 196 255 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+.impress:has(#_overview:target) .step {
+  opacity: .95;
+  filter: none;
+  cursor: pointer;
+}
+
+#_overview {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Minimal default presentation styling. */
+.step h1 {
+  margin: 0 0 20px;
+  font-size: 72px;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.step h2 {
+  margin: 0 0 20px;
+  font-size: 46px;
+  letter-spacing: -.03em;
+}
+
+.step p,
+.step li {
+  font-size: 27px;
+  line-height: 1.5;
+  color: var(--impress-muted);
+}
+
+.step pre {
+  padding: 24px;
+  overflow: auto;
+
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 18px;
+
+  background: #0a1017;
+  font: 21px/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.impress-accent {
+  color: var(--impress-accent);
+}
+
+.impress-controls {
+  position: fixed;
+  z-index: 20;
+  top: 18px;
+  right: 18px;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  padding: 8px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 14px;
+
+  background: rgb(10 15 21 / 72%);
+  backdrop-filter: blur(14px);
+}
+
+.impress-controls button {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 10px;
+
+  color: inherit;
+  background: rgb(255 255 255 / 4%);
+  font: inherit;
+  cursor: pointer;
+}
+
+.impress-controls button:hover {
+  background: rgb(255 255 255 / 9%);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .impress-camera,
+  .step {
+    transition: none;
+  }
+}
