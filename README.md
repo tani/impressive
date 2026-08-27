@@ -15,6 +15,7 @@ Place `impressive.css`, `impressive.js`, and any optional theme beside your HTML
   <title>My presentation</title>
   <link rel="stylesheet" href="impressive.css">
   <link rel="stylesheet" href="impressive-academia-light.css">
+  <script src="impressive.js" defer></script>
 </head>
 <body>
   <div class="impressive">
@@ -39,17 +40,70 @@ Place `impressive.css`, `impressive.js`, and any optional theme beside your HTML
       <button type="button" data-next aria-label="Next slide">→</button>
     </nav>
   </div>
-
-  <script src="impressive.js"></script>
 </body>
 </html>
 ```
 
 Load a theme after `impressive.css` so that its visual rules can override the
-structural defaults. Load the script after the presentation markup. The script
-initializes the first slide, or the slide named by the URL hash.
+structural defaults. External scripts can be loaded from the document head
+with `defer`. The script initializes the first slide, or the slide named by the
+URL hash.
 
 See [`example.html`](example.html) for a complete deck.
+
+## Org mode exporter
+
+`ox-impressive.el` provides an Org export backend derived from the standard
+HTML backend. Add this directory to `load-path`, then load the exporter:
+
+```elisp
+(require 'ox-impressive)
+```
+
+The exporter embeds the structural CSS, optional theme CSS, and JavaScript in
+the generated HTML, producing a self-contained presentation file. Asset paths
+are resolved relative to the Org document first and then relative to
+`ox-impressive.el`.
+
+Each top-level headline becomes one slide. Set its geometry with a property
+drawer:
+
+```org
+#+TITLE: My presentation
+#+IMPRESSIVE_CSS: impressive.css
+#+IMPRESSIVE_THEME: impressive-academia-light.css
+#+IMPRESSIVE_SCRIPT: impressive.js
+
+* Introduction
+:PROPERTIES:
+:IMPRESSIVE_X: 0
+:IMPRESSIVE_Y: 0
+:END:
+
+Hello from Org mode.
+
+* Details
+:PROPERTIES:
+:IMPRESSIVE_X: 1400
+:IMPRESSIVE_Y: 200
+:IMPRESSIVE_Z: -500
+:IMPRESSIVE_ROTATE_Y: 20
+:IMPRESSIVE_SCALE: 0.9
+:END:
+
+Nested headlines and ordinary Org markup use the standard HTML exporter.
+```
+
+Supported geometry properties are `IMPRESSIVE_X`, `IMPRESSIVE_Y`,
+`IMPRESSIVE_Z`, `IMPRESSIVE_ROTATE`, `IMPRESSIVE_ROTATE_X`,
+`IMPRESSIVE_ROTATE_Y`, `IMPRESSIVE_ROTATE_Z`, and `IMPRESSIVE_SCALE`. Use
+`IMPRESSIVE_CLASS` to append CSS classes to a slide. A top-level headline with
+`IMPRESSIVE_OVERVIEW` set to `t` becomes an overview marker instead of a slide.
+
+Export through `C-c C-e I`, or call `org-impressive-export-to-html`. The
+`IMPRESSIVE_CSS`, `IMPRESSIVE_THEME`, `IMPRESSIVE_SCRIPT`, and
+`IMPRESSIVE_CONTROLS` keywords override the corresponding exporter defaults.
+The first three keywords name files whose contents are embedded in the output.
 
 ## Slide attributes
 
@@ -161,7 +215,24 @@ The presentation targets modern browsers with CSS 3D transforms and `:has()` sup
 - `impressive.css` owns 3D layout, transforms, transitions, and minimal structural styling.
 - `impressive-academia-light.css` is an optional light academic theme.
 - `impressive.js` handles navigation, camera state, overview framing, URL hashes, and CSS compatibility values.
+- `ox-impressive.el` exports Org mode documents as impressive.js presentations.
 - `example.html` demonstrates a complete presentation using the academia light theme.
+
+## Acknowledgements
+
+This project owes an obvious conceptual debt to
+[impress.js](https://github.com/impress/impress.js), created by Bartek Szopka
+and developed by its maintainers and contributors. impress.js demonstrated how
+CSS 3D transforms could turn an HTML document into a spatial presentation.
+
+`impressive.js` is not a fork or port of impress.js. It was rewritten from
+scratch to reproduce a similar presentation effect with modern browser
+features and as little JavaScript as practical. Its implementation favors
+native CSS capabilities—including custom properties, typed `attr()`,
+`:has()`, and 3D transforms—while JavaScript is kept to navigation, camera
+state, overview calculation, and compatibility bridging. Keeping the codebase
+small is a design goal: fewer moving parts make the behavior easier to
+understand and reduce the surface area for future bugs.
 
 ## License
 
