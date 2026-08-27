@@ -97,10 +97,10 @@ body {
  */
 .overview {
   display: none;
-}
 
-.overview.active ~ .step {
-  visibility: hidden;
+  &.active ~ .step {
+    visibility: hidden;
+  }
 }
 
 .step {
@@ -168,10 +168,14 @@ body {
 
   transition:
     transform var(--impressive-duration) var(--impressive-ease);
-}
 
-.step pre {
-  overflow: auto;
+  pre {
+    overflow: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .impressive-annotation {
@@ -182,50 +186,40 @@ body {
   height: 100%;
   pointer-events: none;
   touch-action: none;
+
+  .impressive[data-annotation-tool="pen"] .step.active &,
+  .impressive[data-annotation-tool="eraser"] .step.active & {
+    pointer-events: auto;
+  }
+
+  .impressive[data-annotation-tool="pen"] & {
+    cursor: crosshair;
+  }
+
+  .impressive[data-annotation-tool="eraser"] & {
+    cursor: cell;
+  }
 }
 
-.impressive[data-annotation-tool="pen"] .step.active .impressive-annotation,
-.impressive[data-annotation-tool="eraser"] .step.active .impressive-annotation {
-  pointer-events: auto;
-}
-
-.impressive[data-annotation-tool="pen"] .impressive-annotation {
-  cursor: crosshair;
-}
-
-.impressive[data-annotation-tool="eraser"] .impressive-annotation {
-  cursor: cell;
+:is(.impressive-annotations, .impressive-controls) {
+  position: fixed;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .impressive-annotations {
-  position: fixed;
   z-index: 30;
-  right: 18px;
   bottom: 18px;
-
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .impressive-controls {
-  position: fixed;
   z-index: 20;
   top: 18px;
-  right: 18px;
-
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .impressive-progress {
   min-width: 4em;
   text-align: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .step {
-    transition: none;
-  }
 }
