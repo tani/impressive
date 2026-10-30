@@ -234,10 +234,10 @@ body {
 
 Motion can still be configured with `--impressive-duration` and
 `--impressive-ease`. The default slide canvas is `1200 × 675` pixels. The
-JavaScript overview and viewport fallback calculations use those dimensions
+CSS viewport fit and JavaScript overview calculations use those dimensions
 too, so changing `--impressive-slide-width` or
-`--impressive-slide-height` also requires updating the corresponding `W`, `H`,
-and fallback fit values in `impressive.js`.
+`--impressive-slide-height` also requires updating the corresponding `W` and `H`
+values in `impressive.js` and the fit dimensions in `impressive.css`.
 
 You can also add deck-specific typography and component styles with ordinary selectors:
 
@@ -251,7 +251,11 @@ You can also add deck-specific typography and component styles with ordinary sel
 
 ### Browser support
 
-The presentation targets modern browsers with CSS 3D transform support. `impressive.js` supplies compatibility values when typed CSS `attr()` or viewport arithmetic is unavailable. Reduced-motion preferences disable slide and camera transitions.
+The presentation targets the latest Firefox and Chrome with typed CSS `attr()`,
+typed arithmetic, `:has()`, nesting, and 3D transform support. These features
+are required; no JavaScript compatibility fallback is provided. CSS adjusts
+slide and overview zoom automatically when the viewport changes.
+Reduced-motion preferences disable slide and camera transitions.
 
 ## Project
 
@@ -267,7 +271,7 @@ scratch to reproduce a similar presentation effect with modern browser
 features and as little JavaScript as practical. Its implementation favors
 native CSS capabilities—including custom properties, typed `attr()`, and 3D
 transforms—while JavaScript is kept to navigation, camera
-state, overview calculation, slide annotations, and compatibility bridging.
+state, overview bounds calculation, and slide annotations.
 Keeping the codebase small is a design goal: fewer moving parts make the
 behavior easier to understand and reduce the surface area for future bugs.
 

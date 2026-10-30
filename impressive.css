@@ -21,9 +21,10 @@
   --impressive-slide-width: 1200px;
   --impressive-slide-height: 675px;
 
-  /* Modern typed CSS arithmetic (Chromium/Safari modern baseline). */
-  /* JS supplies a numeric fallback on browsers without typed arithmetic. */
-  --impressive-fit: 1;
+  --impressive-fit: min(
+    calc(92vw / 1200px),
+    calc(92vh / 675px)
+  );
 
   --impressive-duration: 800ms;
   --impressive-ease: cubic-bezier(.2, .75, .2, 1);
@@ -31,20 +32,6 @@
   --impressive-ink: CanvasText;
   --impressive-pen-width: 4;
   --impressive-eraser-width: 32;
-}
-
-@supports (scale: calc(100vw / 1px)) {
-  :root {
-    --impressive-fit:
-      min(
-        calc(92vw / 1200px),
-        calc(92vh / 675px)
-      );
-  }
-
-  .impressive {
-    --camera-inv-s: calc(1 / var(--camera-s));
-  }
 }
 
 * {
@@ -66,13 +53,23 @@ body {
   --camera-ry: 0deg;
   --camera-rz: 0deg;
   --camera-s: 1;
-  --camera-inv-s: 1;
+  --camera-inv-s: calc(1 / var(--camera-s));
 
   position: relative;
   height: 100%;
   perspective: 1600px;
   transform-style: preserve-3d;
   touch-action: pan-y;
+}
+
+.impressive:has(> .overview.active) {
+  /* An overview before the first slide keeps the initial viewport fit. */
+  --camera-inv-s: calc(
+    min(
+      calc(88vw / var(--overview-width, calc(1200px * 88 / 92))),
+      calc(88vh / var(--overview-height, calc(675px * 88 / 92)))
+    ) / var(--impressive-fit)
+  );
 }
 
 /*
@@ -104,18 +101,6 @@ body {
 }
 
 .step {
-  /*
-   * Safe defaults. Modern browsers override these with typed attr().
-   * Firefox 154 receives the real values from the tiny compatibility bridge.
-   */
-  --x: 0px;
-  --y: 0px;
-  --z: 0px;
-  --rx: 0deg;
-  --ry: 0deg;
-  --rz: 0deg;
-  --s: 1;
-
   --x: attr(data-x px, 0px);
   --y: attr(data-y px, 0px);
   --z: attr(data-z px, 0px);
@@ -187,16 +172,16 @@ body {
   pointer-events: none;
   touch-action: none;
 
-  .impressive[data-annotation-tool="pen"] .step.active &,
-  .impressive[data-annotation-tool="eraser"] .step.active & {
+  .impressive:has(.impressive-annotations [data-annotation="pen"][aria-pressed="true"]) .step.active &,
+  .impressive:has(.impressive-annotations [data-annotation="eraser"][aria-pressed="true"]) .step.active & {
     pointer-events: auto;
   }
 
-  .impressive[data-annotation-tool="pen"] & {
+  .impressive:has(.impressive-annotations [data-annotation="pen"][aria-pressed="true"]) & {
     cursor: crosshair;
   }
 
-  .impressive[data-annotation-tool="eraser"] & {
+  .impressive:has(.impressive-annotations [data-annotation="eraser"][aria-pressed="true"]) & {
     cursor: cell;
   }
 }

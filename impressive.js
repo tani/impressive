@@ -24,7 +24,7 @@
     "button, a, input, textarea, select, [contenteditable]"
   ));
 
-  const createCamera = (root, items, steps) => {
+  const createCamera = (root, items) => {
     const val = (slide, key, fallback = 0) =>
       Number(slide.dataset[key] ?? fallback);
     const pose = slide => {
@@ -43,42 +43,11 @@
       Object.entries(values).forEach(([key, value]) =>
         element.style.setProperty(`${prefix}${key}`, value));
 
-    /*
-     * Firefox 154 compatibility bridge.
-     *
-     * Modern browsers read slide geometry directly through typed attr()
-     * and compute viewport fit with typed arithmetic. If either feature is
-     * unavailable, JS only supplies those values as CSS custom properties.
-     */
-    const typedAttr =
-      CSS.supports("width", "attr(data-x px, 0px)") &&
-      CSS.supports("--test", "attr(data-scale type(<number>), 1)");
-    const typedMath = CSS.supports("scale", "calc(100vw / 1px)");
-
-    const syncCompat = () => {
-      if (!typedAttr) {
-        for (const step of steps) setVars(step, "--", pose(step));
-      }
-
-      if (!typedMath) {
-        root.style.setProperty(
-          "--impressive-fit",
-          Math.min(innerWidth / 1200, innerHeight / 675) * .92
-        );
-      }
-    };
-
     const setCameraVars = values => setVars(root, "--camera-", values);
 
     // Focused slides are always shown front-on:
     // copy their world rotation to the camera state, and CSS applies its inverse.
-    const showStep = step => {
-      const values = pose(step);
-      setCameraVars({
-        ...values,
-        ...(!typedMath && { "inv-s": 1 / values.s })
-      });
-    };
+    const showStep = step => setCameraVars(pose(step));
 
     const showOverview = marker => {
       const W = 1200, H = 675, pad = 260;
@@ -118,12 +87,10 @@
       const zn = Math.min(...boxes.map(box => box.z));
       const zf = Math.max(...boxes.map(box => box.z));
 
-      const fit = Math.min(innerWidth / W, innerHeight / H) * .92;
-      const all = Math.min(
-        innerWidth / (r - l + 2 * pad),
-        innerHeight / (b - t + 2 * pad + (zf - zn) * .30)
-      ) * .88;
-      const scale = fit / all;
+      setVars(root, "--overview-", {
+        width: `${r - l + 2 * pad}px`,
+        height: `${b - t + 2 * pad + (zf - zn) * .30}px`
+      });
 
       setCameraVars({
         x: `${(l + r) / 2}px`,
@@ -131,9 +98,7 @@
         z: `${(zn + zf) / 2}px`,
         rx: "18deg",
         ry: "-16deg",
-        rz: "0deg",
-        s: scale,
-        ...(!typedMath && { "inv-s": 1 / scale })
+        rz: "0deg"
       });
     };
 
@@ -143,12 +108,7 @@
         : showStep(item);
     };
 
-    const resize = current => {
-      syncCompat();
-      if (current.classList.contains("overview")) showOverview(current);
-    };
-
-    return { resize, show, syncCompat };
+    return { show };
   };
 
   const createAnnotations = (root, steps) => {
@@ -164,7 +124,6 @@
 
     const setTool = nextTool => {
       tool = nextTool;
-      root.dataset.annotationTool = nextTool;
       for (const button of toolButtons) {
         button.setAttribute(
           "aria-pressed",
@@ -302,15 +261,13 @@
       show(items[index]);
     };
 
-    const resize = () => camera.resize(current);
     const start = () => {
-      camera.syncCompat();
       show(items.find(item =>
         item.id && `#${item.id}` === location.hash
       ) || items[0]);
     };
 
-    return { move, resize, start };
+    return { move, start };
   };
 
   const bindInput = (root, navigation, annotations) => {
@@ -378,8 +335,6 @@
       navigation.move(direction);
       event.preventDefault();
     });
-
-    window.addEventListener("resize", navigation.resize);
   };
 
   const init = () => {
@@ -390,7 +345,7 @@
     if (!items.length) return;
 
     const steps = items.filter(item => item.classList.contains("step"));
-    const camera = createCamera(root, items, steps);
+    const camera = createCamera(root, items);
     const annotations = createAnnotations(root, steps);
     const navigation = createNavigation(
       root,
